@@ -1,0 +1,69 @@
+Attendance Analysis Script Documentation
+======================================
+
+Overview
+--------
+This document describes the usage and logic of the `attendence_analysis.py` script, which analyzes student attendance data from an Excel file and generates a risk report for each student.
+
+Purpose
+-------
+The script processes attendance records (hourly per day) for students, calculates daily presence, aggregates attendance statistics, detects anomalies, and categorizes students by attendance risk. The output is an Excel report highlighting students at risk due to low attendance.
+
+Input File Format
+-----------------
+- The script expects an Excel file named `Attendance Table Structure.xlsx` in the same directory.
+- The file should have the following columns (header row is the second row in the sheet):
+    - AttendanceDetailID
+    - AttendanceDate
+    - SemesterYearstudentID
+    - Hour1, Hour2, ..., Hour9 (attendance for each hour: 1=Present, 0=Absent, NULL=Not marked, F=Freeze)
+    - recordstatus, ForeNoon, AfterNoon, Remarks (other columns are ignored by the script)
+
+How It Works
+------------
+1. **Load Data:** Reads the Excel file, using the correct header row.
+2. **Daily Attendance Calculation:** For each row (student on a date), marks as present if present in any hour, absent if absent in all, and ignores frozen/unmarked hours.
+3. **Aggregation:** Pivots data to have one row per student, columns for each date, and values as daily presence (1/0).
+4. **Statistics:** Calculates total absences, attendance percent, and the longest streak of consecutive absences for each student.
+5. **Anomaly Detection:**
+    - Uses Z-score to flag students with unusually low attendance.
+    - Optionally applies Isolation Forest (ML) for further anomaly detection.
+6. **Risk Categorization:**
+    - ✅ Safe: Attendance ≥ 90%
+    - ⚠️ Warning: 75% ≤ Attendance < 90%
+    - 🚨 High Risk: Attendance < 75%
+7. **Output:** Saves the final report as `final_attendance_report.xlsx`.
+
+How to Run
+----------
+1. Place `Attendance Table Structure.xlsx` and `attendence_analysis.py` in the same folder.
+2. Ensure you have Python 3 and the required packages installed:
+    - pandas
+    - numpy
+    - scipy
+    - scikit-learn
+3. Run the script:
+    ```
+    python attendence_analysis.py
+    ```
+4. The script will print progress and save the output as `final_attendance_report.xlsx`.
+
+Interpreting the Output
+-----------------------
+- The output Excel file contains, for each student:
+    - AttendancePercent: Percentage of days present
+    - TotalAbsences: Number of days absent
+    - ConsecutiveAbsences: Longest streak of absences
+    - ZScore_Attendance: Z-score for attendance percent
+    - ZScore_Anomaly: -1 if anomalously low attendance
+    - Anomaly_IForest: ML anomaly flag (if applicable)
+    - RiskCategory: Attendance risk level
+
+Troubleshooting
+---------------
+- If you get a KeyError for column names, check that the header row in your Excel file matches the expected format and is the second row (header=1).
+- If you need to use a different file or header row, adjust the `read_excel` line in the script accordingly.
+
+Contact
+-------
+For further assistance, contact the script author or your data administrator. 
